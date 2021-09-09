@@ -37,41 +37,42 @@ html{
 
 
 `
-var n = 0
-var id = setInterval(() => {
-    n = n + 1
-    code.innerHTML = result.substring(0, n)
-    code.innerHTML = Prism.highlight(code.innerHTML, Prism.languages.css);
-    styleTag.innerHTML = result.substring(0, n)
-    console.log('1')
-    if (n >= result.length) {
-        window.clearInterval(id)
-        fn2()
-        fn3(result)  //将result结果传进来
-    }
-}, 0)
-
-function fn2() {
-    var paper = document.createElement('div')
-    paper.id = 'paper'
-    document.body.appendChild(paper)
-}
-
-function fn3(preResult) { //将result结果将变成之前的结果传入函数
-    var result = `
+var result2 = `
 #paper{
    width:100px;height:100px;
    background:red;
 }
   `
-    var n = 0
-    var id = setInterval(() => {
+//这里用prefix是作为一个前缀，第一次传空字符串，第二调用起到承接之前结果的作用（小技巧）
+function writeCode(prefix,code,fn) {
+    let n = 0
+    let id = setInterval(() => {
         n = n + 1
-        code.innerHTML =preResult + result.substring(0, n)
-        code.innerHTML = Prism.highlight(code.innerHTML, Prism.languages.css);
-        styleTag.innerHTML = preResult+result.substring(0, n)
-        if (n >= result.length) {
+        domCode=document.querySelector("#code")
+        domCode.innerHTML = code.substring(0, n)
+        domCode.innerHTML = Prism.highlight(prefix+domCode.innerHTML, Prism.languages.css);
+        styleTag.innerHTML = prefix+code.substring(0, n)
+        if (n >= code.length) {
             window.clearInterval(id)
+            fn.call()
         }
-    }, 0)
+    }, 30)
 }
+
+writeCode('',result,()=>{
+    //writeCode是异步操作，所以要callback拿到结果
+    console.log('提醒，writeCode结束了')
+    creatPaper(()=>{
+        //creatPaper是同步操作，也可以添加callback操作
+       console.log('提醒，creatPape结束了')
+         writeCode(result,result2,()=>{})
+    })
+})
+
+function creatPaper(fn) {
+    var paper = document.createElement('div')
+    paper.id = 'paper'
+    document.body.appendChild(paper)
+    fn.call()
+}
+
